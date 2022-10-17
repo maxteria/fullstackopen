@@ -1,23 +1,31 @@
 import React, { useState } from "react";
+import Filter from "./components/filter";
+import PersonForm from "./components/person-form";
+import Persons from "./components/persons";
 
-const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "+5492942301890" },
-    { name: "Maximiliano", number: "+5492944232301890" },
-    { name: "Carlos", number: "+34234523" },
-  ]);
+const App = (props) => {
+  // APP State
+  const [persons, setPersons] = useState(props.persons);
+
+  // STATES: for contolled components
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
 
+  // HANDLERS: for controlled components
   const handleNameChange = (e) => {
     setNewName(e.target.value);
   };
 
   const handleNumberChange = (e) => {
-    e.preventDefault();
     setNewPhone(e.target.value);
   };
 
+  const handleNameFilterChange = (e) => {
+    setNameFilter(e.target.value);
+  };
+
+  // ADD: person to phonebook
   const addPerson = (e) => {
     e.preventDefault();
 
@@ -34,28 +42,32 @@ const App = () => {
     setNewPhone("");
   };
 
+  // FILTER: by name
+  const personsFilteredByName = () =>
+    persons.filter((person) => {
+      let _name = person.name.toLowerCase();
+      let _filter = nameFilter.toLowerCase();
+
+      return _name.search(_filter) >= 0;
+    });
+
+  // Render
   return (
     <div>
-      <h2>Phonebook</h2>
-      <form onSubmit={addPerson}>
-        <div>
-          name: <input onChange={handleNameChange} value={newName} />
-        </div>
-        <div>
-          number: <input onChange={handleNumberChange} value={newPhone} />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
+      <h1>Phonebook</h1>
+      <Filter onChange={handleNameFilterChange} text="Filter Shown With" />
+
+      <h2>Add a new</h2>
+      <PersonForm
+        onSubmit={addPerson}
+        inputNameOnChange={handleNameChange}
+        inputNameValue={newName}
+        inputPhoneOnChange={handleNumberChange}
+        inputPhoneValue={newPhone}
+      />
+
       <h2>Numbers</h2>
-      <ul>
-        {persons.map((person) => (
-          <li key={person.name}>
-            {person.name} {person.number}
-          </li>
-        ))}
-      </ul>
+      <Persons persons={personsFilteredByName} />
     </div>
   );
 };
