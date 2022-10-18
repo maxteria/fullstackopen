@@ -1,13 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Filter from "./components/filter";
 import PersonForm from "./components/person-form";
 import Persons from "./components/persons";
+import axios from "axios";
 
-const App = (props) => {
-  // APP State
-  const [persons, setPersons] = useState(props.persons);
+const App = () => {
+  // Promise: Load data from json-server
+  const hook = () => {
+    axios
+      .get("http://localhost:3001/persons")
+      .then((response) => setPersons(response.data));
+  };
 
-  // STATES: for contolled components
+  useEffect(hook, []);
+
+  // States
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [nameFilter, setNameFilter] = useState("");
