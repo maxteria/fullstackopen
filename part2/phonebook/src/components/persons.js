@@ -1,18 +1,18 @@
 import React from "react";
 
-const Person = ({ name, number }) => (
+const Person = ({ name, number, id, handleDelete }) => (
   <li>
-    {name}
-    {number}
+    {name} {number} <button onClick={() => handleDelete(id)}>Delete</button>
   </li>
 );
 
-const Persons = ({ persons }) => {
+const Persons = ({ persons, handleDelete }) => {
+
   return (
     <>
       <ul>
-        {persons().map((person) => (
-          <Person key={person.name} name={person.name} number={person.number} />
+        {persons.map((person) => (
+          <Person key={person.name} name={person.name} number={person.number} id={person.id} handleDelete={handleDelete} />
         ))}
       </ul>
     </>
