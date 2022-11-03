@@ -1,45 +1,47 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Note from "./components/Note";
+import noteService from "./services/notes";
 
 const App = () => {
-  console.log('app');
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(true);
 
-  // runs inmediatly after rendering the component
-  // As always, a call to a state update
-  // function (setNotes in this case) triggers the re-rendering of the component.
-  const hook = () => {
-    console.log("effect");
-    axios
-      .get("http://localhost:3001/notes")
-      .then((response) => {
-        console.log("promise fulfilled");
-        setNotes(response.data);
-    });
-  };
+  useEffect(() => {
+    noteService.getAll()
+    .then(initialNotes => setNotes(initialNotes))
+  }, []);
 
-  // an empty array as second parameter make that the effect run on ly one time.
-  useEffect(hook, [])
-  
-  console.log("render", notes.length, "notes");
-
-  const addNote = (e) => {
-    e.preventDefault();
+  const addNote = (event) => {
+    event.preventDefault();
     const noteObject = {
       content: newNote,
       date: new Date().toISOString(),
-      importan: Math.random() < 0.5,
+      important: Math.random() > 0.5,
       id: notes.length + 1,
     };
-    setNotes(notes.concat(noteObject));
-    setNewNote("thanks! enter a new note");
+
+    noteService.create(noteObject).then(returnedNote => {
+      setNotes(notes.concat(returnedNote));
+      setNewNote("");
+    });
   };
 
-  const handleNoteChange = (e) => {
-    setNewNote(e.target.value);
+  const handleNoteChange = (event) => {
+    setNewNote(event.target.value);
+  };
+
+  const toggleImportanceOf = (id) => {
+    const note = notes.find((n) => n.id === id);
+    const changedNote = { ...note, important: !note.important };
+
+    noteService.update(id, changedNote)
+      .then(returnedNote => {
+      setNotes(notes.map((note) => (note.id !== id ? note : returnedNote)));
+    }).catch((error) => {
+      alert(`the note '${note.content}' was already deleted from server`);
+      setNotes(notes.filter((n) => n.id !== id));
+    });
   };
 
   const notesToShow = showAll ? notes : notes.filter((note) => note.important);
@@ -49,12 +51,16 @@ const App = () => {
       <h1>Notes</h1>
       <div>
         <button onClick={() => setShowAll(!showAll)}>
-          show: <strong>{showAll ? "important" : "all"}</strong>
+          show {showAll ? "important" : "all"}
         </button>
       </div>
       <ul>
         {notesToShow.map((note) => (
-          <Note key={note.id} note={note} />
+          <Note
+            key={note.id}
+            note={note}
+            toggleImportance={() => toggleImportanceOf(note.id)}
+          />
         ))}
       </ul>
       <form onSubmit={addNote}>

@@ -4,7 +4,7 @@
       "id": 1,
       "content": "HTML is easy",
       "date": "2019-05-30T17:30:31.098Z",
-      "important": true
+      "important": false
     },
     {
       "id": 2,
@@ -16,7 +16,37 @@
       "id": 3,
       "content": "GET and POST are the most important methods of HTTP protocol",
       "date": "2019-05-30T19:20:14.298Z",
-      "important": true
+      "important": false
+    },
+    {
+      "content": "dsada",
+      "date": "2022-10-23T14:01:27.956Z",
+      "important": true,
+      "id": 4
+    },
+    {
+      "content": "nueva nota",
+      "date": "2022-10-23T14:03:14.821Z",
+      "important": true,
+      "id": 5
+    },
+    {
+      "content": "Maximiliano",
+      "date": "2022-10-23T14:08:18.188Z",
+      "important": true,
+      "id": 6
+    },
+    {
+      "content": "Juan",
+      "date": "2022-10-23T15:05:50.424Z",
+      "important": false,
+      "id": 7
+    },
+    {
+      "content": "Nueva notaaaa",
+      "date": "2022-10-23T15:12:38.023Z",
+      "important": false,
+      "id": 8
     }
   ]
 }
