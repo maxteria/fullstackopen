@@ -9,7 +9,7 @@ const App = () => {
 
   useEffect(() => {
     noteService.getAll()
-    .then(initialNotes => setNotes(initialNotes))
+      .then(initialNotes => setNotes(initialNotes))
   }, []);
 
   const addNote = (event) => {
@@ -37,11 +37,11 @@ const App = () => {
 
     noteService.update(id, changedNote)
       .then(returnedNote => {
-      setNotes(notes.map((note) => (note.id !== id ? note : returnedNote)));
-    }).catch((error) => {
-      alert(`the note '${note.content}' was already deleted from server`);
-      setNotes(notes.filter((n) => n.id !== id));
-    });
+        setNotes(notes.map((note) => (note.id !== id ? note : returnedNote)));
+      }).catch((error) => {
+        alert(`the note '${note.content}' was already deleted from server`);
+        setNotes(notes.filter((n) => n.id !== id));
+      });
   };
 
   const notesToShow = showAll ? notes : notes.filter((note) => note.important);

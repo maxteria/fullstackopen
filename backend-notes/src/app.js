@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 app.use(cors())
 
-let notes = [
+const notes = [
   {
     id: 1,
     content: "HTML is easy",
@@ -27,16 +27,17 @@ let notes = [
 ];
 
 const generateId = () => {
-    // map return an array and here i use spread to transform array into individual numbers 
+  // map return an array and here i use spread to transform array into individual numbers 
   const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
   return maxId + 1;
 };
 
+// Post request
 app.post("/api/notes", (request, response) => {
   const body = request.body;
 
-  if(!body.content) {
-    return response.status(400).json({error: 'content missing'})
+  if (!body.content) {
+    return response.status(400).json({ error: 'content missing' })
   }
 
   const note = {
@@ -62,13 +63,27 @@ app.get("/api/notes", (request, response) => {
 app.get("/api/notes/:id", (request, response) => {
   const id = Number(request.params.id);
   const note = notes.find((note) => id === note.id);
-  
+
   if (note) {
     response.json(note);
   } else {
     response.status(404).end();
   }
 });
+
+app.put("/api/notes/:id", (request, response) => {
+  const id = Number(request.params.id);
+  const note = notes.find((note) => id === note.id);
+
+  if (note) {
+    const body = request.body;
+    note.content = body.content;
+    note.important = body.important;
+    response.json(note);
+  } else {
+    response.status(404).end();
+  }
+})
 
 app.delete("/api/notes/:id", (request, response) => {
   const id = Number(request.params.id);

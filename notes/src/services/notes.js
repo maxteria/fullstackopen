@@ -23,10 +23,3 @@ const update = (id, newObject) => {
 };
 
 export default { getAll, create, update };
-
-// { 
-//     getAll: getAll, 
-//     create: create, 
-//     update: update 
-//   }
-// note that we used in export statemen a short notation
