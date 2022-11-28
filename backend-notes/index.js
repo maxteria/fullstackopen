@@ -6,6 +6,9 @@ const cors = require('cors')
 
 const Note = require('./models/note')
 
+const notFound = require('./middleware/notFound')
+const handleError = require('./middleware/handleError')
+
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
   console.log('Path:  ', request.path)
@@ -25,7 +28,7 @@ app.get('/', (req, res) => {
   <p>See <a href="/api/notes">/api/notes</a> for notes</p>`)
 })
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body
 
   if (body.content === undefined) {
@@ -38,9 +41,11 @@ app.post('/api/notes', (request, response) => {
     date: new Date(),
   })
 
-  note.save().then(savedNote => {
-    response.json(savedNote)
-  })
+  note
+    .save()
+    .then(savedNote => savedNote.toJSON())
+    .then(savedAndFormattedNote => response.json(savedAndFormattedNote))
+    .catch(error => next(error))
 })
 
 app.get('/api/notes', (request, response) => {
@@ -86,22 +91,8 @@ app.put('/api/notes/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
-app.use(unknownEndpoint)
-
-
-const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
-
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  }
-
-  next(error)
-}
-app.use(errorHandler)
+app.use(notFound)
+app.use(handleError)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
