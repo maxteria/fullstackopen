@@ -1,97 +1,109 @@
-const express = require("express");
-const cors = require("cors")
-const app = express();
 
-app.use(express.json());
+const express = require('express')
+const app = express()
+const cors = require('cors')
+require('dotenv').config()
+const Note = require('./models/note')
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+
+app.use(express.json())
+app.use(requestLogger)
 app.use(cors())
+app.use(express.static('build'))
 
-const notes = [
-  {
-    id: 1,
-    content: "HTML is easy",
-    date: "2019-05-30T17:30:31.098Z",
-    important: true,
-  },
-  {
-    id: 2,
-    content: "Browser can execute only Javascript",
-    date: "2019-05-30T18:39:34.091Z",
-    important: false,
-  },
-  {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    date: "2019-05-30T19:20:14.298Z",
-    important: true,
-  },
-];
-
-const generateId = () => {
-  // map return an array and here i use spread to transform array into individual numbers 
-  const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
-  return maxId + 1;
-};
-
-// Post request
-app.post("/api/notes", (request, response) => {
-  const body = request.body;
-
-  if (!body.content) {
-    return response.status(400).json({ error: 'content missing' })
-  }
-
-  const note = {
-    content: body.content,
-    important: body.important || false,
-    date: new Date(),
-    id: generateId(),
-  }
-
-  notes = notes.concat(note);
-
-  response.json(note);
-});
-
-app.get("/", (request, response) => {
-  response.send("<h1> Hello World </h1>");
-});
-
-app.get("/api/notes", (request, response) => {
-  response.json(notes);
-});
-
-app.get("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const note = notes.find((note) => id === note.id);
-
-  if (note) {
-    response.json(note);
-  } else {
-    response.status(404).end();
-  }
-});
-
-app.put("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const note = notes.find((note) => id === note.id);
-
-  if (note) {
-    const body = request.body;
-    note.content = body.content;
-    note.important = body.important;
-    response.json(note);
-  } else {
-    response.status(404).end();
-  }
+// Routes
+// get all notes
+app.get('/api/notes', (req, res) => {
+  Note.find({}).then(notes => {
+    res.json(notes)
+  })
 })
 
-app.delete("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  notes = notes.filter((note) => id !== note.id);
+// create a note
+app.post('/api/notes', (req, res) => {
+  const body = req.body
 
-  response.status(204).end();
-});
+  if (body.content === undefined) {
+    return res.status(400).json({ error: 'content missing' })
+  }
 
-const PORT = 3001;
-app.listen(PORT);
-console.log(`Server running on port ${PORT}`);
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+    date: new Date()
+  })
+
+  note.save().then(savedNote => {
+    res.json(savedNote)
+  })
+})
+
+// get a single note
+app.get('/api/notes/:id', (req, res, next) => {
+  Note.findById(req.params.id)
+    .then(note => {
+      if (note) {
+        res.json(note)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(error => {
+      next(error)
+    })
+})
+
+
+// update a note
+app.put('/api/notes/:id', (req, res, next) => {
+  const note = {
+    content: req.body.content,
+    important: req.body.important,
+  }
+
+  Note.findByIdAndUpdate(req.params.id, note, { new: true })
+    .then(updatedNote => {
+      res.json(updatedNote)
+    })
+    .catch(error => next(error))
+})
+
+// delete a note
+app.delete('/api/notes/:id', (req, res, next) => {
+  Note.findByIdAndRemove(req.params.id)
+    .then(result => {
+      res.status(204).end()
+    })
+    .catch(error => next(error))
+})
+
+// unknown endpoint
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
+
+// error handler
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+app.use(errorHandler)
+
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
